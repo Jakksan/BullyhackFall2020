@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 import os
-recognizer = cv2.face.LBPHFaceRecognizer_create()
+recognizer = cv2.face.EigenFaceRecognizer_create()
 recognizer.read('trainer/trainer.yml')
-cascadePath = "/Users/jacksondegruiter/Documents/Bullyhack/python/dataset/haarcascade_frontalface_default.xml"
+cascadePath = "./dataset/haarcascade_frontalface_default.xml"
 faceCascade = cv2.CascadeClassifier(cascadePath)
 font = cv2.FONT_HERSHEY_SIMPLEX
 cam = cv2.VideoCapture(0)
@@ -15,10 +15,11 @@ while True:
     faces = faceCascade.detectMultiScale(gray, 1.2,5)
     num_people = 0
     for(x,y,w,h) in faces:
-        Id, confidence = recognizer.predict(gray[y:y+h,x:x+w])
+        new_img = cv2.resize(gray[y:y+h,x:x+w], dsize = (100,100)) 
+        Id, confidence = recognizer.predict(new_img)
         Id_name = ""
         print(Id, confidence)
-        if(Id == 1 and confidence < 50):
+        if(Id == 1 and confidence < 70):
             Id_name = "Person"
             num_people+=1
             cv2.rectangle(im, (x-20,y-20), (x+w+20,y+h+20), (200,30,0), 4)
@@ -62,8 +63,8 @@ while True:
         print("Average People: " + str(avg))
         print("1:X>1 ratio: " + str(one_to_gt_one_ratio))
 
-        if( one_to_gt_one_ratio > 1):
-            os.system("open -a FireFox")
+       # if( one_to_gt_one_ratio > 1):
+        #    os.system("start FireFox")
 
 
 
