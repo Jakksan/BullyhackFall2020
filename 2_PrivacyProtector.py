@@ -9,6 +9,8 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 cam = cv2.VideoCapture(0)
 frame_count = 0
 people_count_array=[]
+
+last_count = 0
 while True:
     ret, im =cam.read()
     gray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
@@ -18,60 +20,36 @@ while True:
         Id, confidence = recognizer.predict(gray[y:y+h,x:x+w])
         Id_name = ""
         print(Id, confidence)
-        if(Id == 1 and confidence < 50):
+        if(Id == 1 and confidence < 100):
             Id_name = "Person"
             num_people+=1
-            cv2.rectangle(im, (x-20,y-20), (x+w+20,y+h+20), (200,30,0), 4)
-            cv2.rectangle(im, (x-22,y-90), (x+w+22, y-22), (200,30,0), -1)
+            cv2.rectangle(im, (x-20,y-20), (x+w+20,y+h+20), (200,30,100), 4)
+            cv2.rectangle(im, (x-22,y-90), (x+w+22, y-22), (200,30,100), -1)
             # os.system("open -a FireFox")
         else:
             Id_name = "Unknown"
             cv2.rectangle(im, (x-20,y-20), (x+w+20,y+h+20), (0,255,0), 4)
             cv2.rectangle(im, (x-22,y-90), (x+w+22, y-22), (0,255,0), -1)
 
-        cv2.rectangle(im, (x-22,y-90), (x+w+22, y-22), (0,255,0), -1)
+        # cv2.rectangle(im, (x-22,y-90), (x+w+22, y-22), (0,255,0), -1)
         cv2.putText(im, str(Id_name), (x,y-40), font, 2, (255,255,255), 3)
-        cv2.putText(im, str("Confidence: " + str(int(confidence))), (x,y-100), font, 2, (255,255,255), 3)
+        cv2.putText(im, str(int(confidence)), (x,y+10), font, 1, (255,255,255), 1)        # str(int(100-100*(confidence/186))) + "%"
 
 
     people_count_array.append(num_people)
     cv2.rectangle(im, (0,0), (300,100), (200,50,0), -1)
     cv2.putText(im, str("People " + str(num_people)), (50,50), font, 1, (255,255,255), 1)
 
-    if(frame_count%60 == 0):
-        frame_count=0
-        ones=0
-        gt_ones=0
-        zeros=0
-        sum=0
-        for count in people_count_array:
-            sum+=count
-            if count == 1:
-                ones+=1
-            elif count >1:
-                gt_ones+=1
-            elif count == 0:
-                zeros+=1
-        avg=sum/len(people_count_array)
-        try:
-            one_to_gt_one_ratio=ones/gt_ones
-        except:
-            one_to_gt_one_ratio=2
-        people_count_array=[]
+    # if(last_count>1 and num_people>=last_count):
+        # os.system("open -a FireFox")
 
-        print("Average People: " + str(avg))
-        print("1:X>1 ratio: " + str(one_to_gt_one_ratio))
-
-        if( one_to_gt_one_ratio > 1):
-            os.system("open -a FireFox")
-
-
+    last_count = num_people
 
     cv2.imshow('im',im)
     if cv2.waitKey(10) & 0xFF == ord('q'):
         break
     frame_count+=1
-    if frame_count>100:
+    if frame_count>10000:
         break
 cam.release()
 cv2.destroyAllWindows()
